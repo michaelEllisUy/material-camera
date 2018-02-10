@@ -336,7 +336,8 @@ public class MaterialCamera {
         new Intent(mContext, cls)
             .putExtra(CameraIntentKey.ALLOW_CHANGE_CAMERA, mAllowChangeCamera)
             .putExtra(CameraIntentKey.ALLOW_RETRY, mAllowRetry)
-            .putExtra(CameraIntentKey.AUDIO_DISABLED, mAudioDisabled)
+            .putExtra(CameraIntentKey.AUDIO_DISABLED, mAudioDisabled
+                    && externalLocalAudioFullPath == null)
             .putExtra(CameraIntentKey.AUTO_RECORD, mAutoRecord)
             .putExtra(CameraIntentKey.AUTO_SUBMIT, mAutoSubmit)
             .putExtra(CameraIntentKey.CONTINUE_TIMER_IN_PLAYBACK, mContinueTimerInPlayback)
