@@ -45,5 +45,3 @@ dependencies {
     compile 'com.afollestad.material-dialogs:core:' + versions.materialDialogs
     compile 'com.github.xmartlabs:k4l-video-trimmer:' + versions.videoTrimmer
 }
-
-apply from: 'https://raw.githubusercontent.com/afollestad/aidanfollestad.com/master/android-lib-release.gradle'

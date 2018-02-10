@@ -24,13 +24,16 @@ import java.io.File;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-/** @author Aidan Follestad (afollestad) */
+/**
+ * @author Aidan Follestad (afollestad)
+ */
 @SuppressWarnings("WeakerAccess")
 public class MaterialCamera {
 
   @IntDef({QUALITY_HIGH, QUALITY_LOW, QUALITY_480P, QUALITY_720P, QUALITY_1080P})
   @Retention(RetentionPolicy.SOURCE)
-  public @interface QualityProfile {}
+  public @interface QualityProfile {
+  }
 
   public static final int QUALITY_HIGH = CamcorderProfile.QUALITY_HIGH;
   public static final int QUALITY_LOW = CamcorderProfile.QUALITY_LOW;
@@ -84,6 +87,8 @@ public class MaterialCamera {
 
   private int mLabelRetry;
   private int mLabelConfirm;
+  @Nullable
+  private String externalLocalAudioFullPath;
 
   public MaterialCamera(@NonNull Activity context) {
     mContext = context;
@@ -198,7 +203,14 @@ public class MaterialCamera {
     return this;
   }
 
-  /** @deprecated Renamed to videoEncodingBitRate(int). */
+  public MaterialCamera setAudioFullPath(@NonNull String externalLocalAudioFullPath) {
+    this.externalLocalAudioFullPath = externalLocalAudioFullPath;
+    return this;
+  }
+
+  /**
+   * @deprecated Renamed to videoEncodingBitRate(int).
+   */
   @Deprecated
   public MaterialCamera videoBitRate(@IntRange(from = 1, to = Integer.MAX_VALUE) int rate) {
     return videoEncodingBitRate(rate);
@@ -295,7 +307,9 @@ public class MaterialCamera {
     return this;
   }
 
-  /** Will take a still shot instead of recording. */
+  /**
+   * Will take a still shot instead of recording.
+   */
   public MaterialCamera stillShot() {
     mStillShot = true;
     return this;
@@ -320,21 +334,22 @@ public class MaterialCamera {
             : CaptureActivity.class;
     Intent intent =
         new Intent(mContext, cls)
-            .putExtra(CameraIntentKey.LENGTH_LIMIT, mLengthLimit)
-            .putExtra(CameraIntentKey.ALLOW_RETRY, mAllowRetry)
-            .putExtra(CameraIntentKey.AUTO_SUBMIT, mAutoSubmit)
-            .putExtra(CameraIntentKey.SAVE_DIR, mSaveDir)
-            .putExtra(CameraIntentKey.PRIMARY_COLOR, mPrimaryColor)
-            .putExtra(CameraIntentKey.SHOW_PORTRAIT_WARNING, mShowPortraitWarning)
             .putExtra(CameraIntentKey.ALLOW_CHANGE_CAMERA, mAllowChangeCamera)
-            .putExtra(CameraIntentKey.DEFAULT_TO_FRONT_FACING, mDefaultToFrontFacing)
-            .putExtra(CameraIntentKey.COUNTDOWN_IMMEDIATELY, mCountdownImmediately)
-            .putExtra(CameraIntentKey.RETRY_EXITS, mRetryExists)
-            .putExtra(CameraIntentKey.RESTART_TIMER_ON_RETRY, mRestartTimerOnRetry)
-            .putExtra(CameraIntentKey.CONTINUE_TIMER_IN_PLAYBACK, mContinueTimerInPlayback)
-            .putExtra(CameraIntentKey.STILL_SHOT, mStillShot)
+            .putExtra(CameraIntentKey.ALLOW_RETRY, mAllowRetry)
+            .putExtra(CameraIntentKey.AUDIO_DISABLED, mAudioDisabled)
             .putExtra(CameraIntentKey.AUTO_RECORD, mAutoRecord)
-            .putExtra(CameraIntentKey.AUDIO_DISABLED, mAudioDisabled);
+            .putExtra(CameraIntentKey.AUTO_SUBMIT, mAutoSubmit)
+            .putExtra(CameraIntentKey.CONTINUE_TIMER_IN_PLAYBACK, mContinueTimerInPlayback)
+            .putExtra(CameraIntentKey.COUNTDOWN_IMMEDIATELY, mCountdownImmediately)
+            .putExtra(CameraIntentKey.DEFAULT_TO_FRONT_FACING, mDefaultToFrontFacing)
+            .putExtra(CameraIntentKey.EXTERNAL_LOCAL_AUDIO_PATH, externalLocalAudioFullPath)
+            .putExtra(CameraIntentKey.LENGTH_LIMIT, mLengthLimit)
+            .putExtra(CameraIntentKey.PRIMARY_COLOR, mPrimaryColor)
+            .putExtra(CameraIntentKey.RESTART_TIMER_ON_RETRY, mRestartTimerOnRetry)
+            .putExtra(CameraIntentKey.RETRY_EXITS, mRetryExists)
+            .putExtra(CameraIntentKey.SAVE_DIR, mSaveDir)
+            .putExtra(CameraIntentKey.SHOW_PORTRAIT_WARNING, mShowPortraitWarning)
+            .putExtra(CameraIntentKey.STILL_SHOT, mStillShot);
 
     if (mVideoEncodingBitRate > 0)
       intent.putExtra(CameraIntentKey.VIDEO_BIT_RATE, mVideoEncodingBitRate);

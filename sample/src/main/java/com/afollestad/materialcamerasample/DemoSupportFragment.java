@@ -15,7 +15,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.afollestad.materialcamera.MaterialCamera;
+
 import java.io.File;
 import java.text.DecimalFormat;
 

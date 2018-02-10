@@ -329,7 +329,7 @@ public class CameraFragment extends BaseCameraFragment implements View.OnClickLi
                 == PackageManager.PERMISSION_GRANTED;
       }
 
-      if (canUseAudio && audioEnabled) {
+      if (canUseAudio && audioEnabled && externalLocalAudioPath == null) {
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
       } else if (audioEnabled) {
         Toast.makeText(getActivity(), R.string.mcam_no_audio_access, Toast.LENGTH_LONG).show();

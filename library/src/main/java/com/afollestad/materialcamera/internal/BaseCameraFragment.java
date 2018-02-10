@@ -2,14 +2,18 @@ package com.afollestad.materialcamera.internal;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.hardware.SensorManager;
+import android.media.AudioManager;
 import android.media.MediaRecorder;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -39,7 +43,9 @@ import static com.afollestad.materialcamera.internal.BaseCaptureActivity.FLASH_M
 import static com.afollestad.materialcamera.internal.BaseCaptureActivity.FLASH_MODE_AUTO;
 import static com.afollestad.materialcamera.internal.BaseCaptureActivity.FLASH_MODE_OFF;
 
-/** @author Aidan Follestad (afollestad) */
+/**
+ * @author Aidan Follestad (afollestad)
+ */
 abstract class BaseCameraFragment extends Fragment implements CameraUriInterface, View.OnClickListener {
   private int mLastRotation;
   protected ImageButton mButtonFacing;
@@ -55,7 +61,8 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
   protected BaseCaptureInterface mInterface;
   protected Handler mPositionHandler;
   protected MediaRecorder mMediaRecorder;
-  private int mIconTextColor;
+  @Nullable
+  protected String externalLocalAudioPath;
 
   protected static void LOG(Object context, String message) {
     Log.d(
@@ -144,21 +151,13 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
               : mInterface.iconRearCamera());
     }
 
-    mButtonFlash = (ImageButton) view.findViewById(R.id.flash);
+    mButtonFlash = view.findViewById(R.id.flash);
     setupFlashMode();
 
     mButtonVideo.setOnClickListener(this);
     mButtonStillshot.setOnClickListener(this);
     mButtonFacing.setOnClickListener(this);
     mButtonFlash.setOnClickListener(this);
-
-    int primaryColor = getArguments().getInt(CameraIntentKey.PRIMARY_COLOR);
-    if (CameraUtil.isColorDark(primaryColor)) {
-      mIconTextColor = ContextCompat.getColor(getActivity(), R.color.color_light);
-      primaryColor = CameraUtil.darkenColor(primaryColor);
-    } else {
-      mIconTextColor = ContextCompat.getColor(getActivity(), R.color.dark);
-    }
 
     if (mMediaRecorder != null && mIsRecording) {
       setImageRes(mButtonVideo, mInterface.iconStop());
@@ -184,6 +183,8 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
     } else {
       mDelayStartCountdown.setText(Long.toString(mInterface.autoRecordDelay() / 1000));
     }
+
+    setupExternalLocalAudioContent();
   }
 
   protected void onFlashModesLoaded() {
@@ -384,6 +385,48 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
       mMediaRecorder.reset();
       mMediaRecorder.release();
       mMediaRecorder = null;
+      if (soundPool != null) {
+        stopExternalLocalAudio();
+        soundPool.release();
+      }
+    }
+  }
+
+  private static final int MAX_SOUND_POOL_STREAMS = 1;
+  private static final int NORMAL_PRIORITY = 1;
+  private int mySoundId;
+  @Nullable
+  SoundPool soundPool;
+
+  public void setupExternalLocalAudioContent() {
+    String extraAudioFullPath = getArguments().getString(CameraIntentKey.EXTERNAL_LOCAL_AUDIO_PATH);
+    if (extraAudioFullPath != null && new File(extraAudioFullPath).exists()) {
+      this.externalLocalAudioPath = extraAudioFullPath;
+
+      soundPool = new SoundPool(MAX_SOUND_POOL_STREAMS, AudioManager.STREAM_MUSIC, 100);
+      if (getActivity() != null) {
+        this.mySoundId = this.soundPool.load(extraAudioFullPath, 1);
+      }
+    }
+  }
+
+  private void playExternalLocalAudio() {
+    if (soundPool != null) {
+      AudioManager mgr = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
+
+      int streamVolume = 1;
+      if (mgr != null) {
+        streamVolume = mgr.getStreamVolume(AudioManager.STREAM_MUSIC);
+      }
+
+      this.soundPool.play(this.mySoundId, streamVolume, streamVolume,
+          NORMAL_PRIORITY, -1, 1);
+    }
+  }
+
+  private void stopExternalLocalAudio() {
+    if (soundPool != null) {
+      this.soundPool.stop(this.mySoundId);
     }
   }
 
@@ -400,6 +443,7 @@ abstract class BaseCameraFragment extends Fragment implements CameraUriInterface
     //noinspection ResourceType
     getActivity().setRequestedOrientation(orientation);
     mInterface.setDidRecord(true);
+    playExternalLocalAudio();
     return true;
   }
 
